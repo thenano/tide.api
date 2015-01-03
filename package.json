@@ -1,0 +1,20 @@
+{
+  "name": "tide.api",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "express": "~4.10.6",
+    "node-wolfram": "0.0.1",
+    "cors": "~2.5.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "author": "",
+  "license": "ISC"
+}
