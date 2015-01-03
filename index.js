@@ -1,16 +1,19 @@
 var express = require('express')
   , cors = require('cors')
-  , Wolfram = require('node-wolfram')
+  , WolframClient = require('node-wolfram')
   , app = express();
 
 var corsOptions = {
   origin: 'http://tide.is'
 };
 
-var alphaClient = new Wolfram(process.env.WOLFRAM_API_KEY);
+var client = new WolframClient(process.env.WOLFRAM_API_KEY);
 
 app.get('/:lat/:lon', cors(corsOptions), function(req, res, next){
-  alphaClient.query("tides " + req.params.lat + " " + req.params.lon, function(err, result) {
+  client.query({
+  	input: 'tides | ' + req.params.lat + ' ' + req.params.lon,
+  	units: 'metric'
+  }, function(err, result) {
   	if(err) {
   	  res.status(400).send('Bad Request');
   	} else {
