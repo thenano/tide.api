@@ -51,8 +51,11 @@ app.get('/:lat/:lon', cors(corsOptions), function(req, res, next){
     if(err) {
       res.status(400).send('Bad Request');
     } else {
-      console.log(result);
-      res.json(parseResult(result.queryresult.pod));
+      if (result.queryresult.pod) {
+        res.json(parseResult(result.queryresult.pod));
+      } else {
+        res.json({tides: []});
+      }
     }
   });
 });
