@@ -11,7 +11,7 @@ var client = new WolframClient(process.env.WOLFRAM_API_KEY);
 
 var parseTides = function (tideText) {
   var tides = [];
-  var parser = /(low|high) tide \| (\d+:\d+ (am|pm) \w+)\n\(([^)]+)\) \| (.\d+\.\d+) meters/g;
+  var parser = /(low|high) tide \| (\d+:\d+ (am|pm) \w+)\n\(([^)]+)\) \| (.\d+(\.\d+)?) meter/g;
   while ((match = parser.exec(tideText)) !== null) {
     tides.push({
       type: match[1],
@@ -28,18 +28,18 @@ var parseStation = function (stationText) {
   return {
     location: match[1],
     distance: match[2].replace(' ', '')
-  }
+  };
 };
 
 var parseResult = function (response) {
   return response.reduce(function (result, pod) {
     if (pod.$.id === "Result") {
       result.tides = parseTides(pod.subpod[0].plaintext[0]);
-    };
+    }
     if (pod.$.id === "TideMeasurementStation") {
       result.station = parseStation(pod.subpod[0].plaintext[0]);
-    };
-    return result
+    }
+    return result;
   }, {});
 };
 
