@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "cors": "~2.5.2",
     "express": "~4.10.6",
-    "node-wolfram": "0.0.1",
-    "cors": "~2.5.2"
+    "newrelic": "^1.21.1",
+    "node-wolfram": "0.0.1"
   },
   "devDependencies": {},
   "scripts": {

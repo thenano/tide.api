@@ -1,3 +1,5 @@
+require('newrelic');
+
 var express = require('express')
   , cors = require('cors')
   , WolframClient = require('node-wolfram')
