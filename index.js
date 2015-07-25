@@ -5,7 +5,6 @@ var cors = require('cors');
 var WolframClient = require('node-wolfram');
 var Promise = require("bluebird");
 var _ = require('lodash');
-var util = require('util');
 
 var app = express();
 
