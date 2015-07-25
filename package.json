@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "bluebird": "^2.9.34",
     "cors": "~2.5.2",
     "express": "~4.10.6",
+    "lodash": "^3.10.0",
     "newrelic": "^1.21.1",
     "node-wolfram": "0.0.1"
   },
