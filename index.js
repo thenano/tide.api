@@ -11,13 +11,13 @@ var client = new WolframClient(process.env.WOLFRAM_API_KEY);
 
 var parseTides = function (tideText) {
   var tides = [];
-  var parser = /(low|high) tide \| (\d+:\d+ (am|pm) \w+)\n\(([^)]+)\) \| (.\d+(\.\d+)?) meter/g;
+  var parser = /(low|high) tide \| (\d+:\d+ (am|pm) \w+)(\n\(([^)]+)\))? \| (.\d+(\.\d+)?) meter/g;
   while ((match = parser.exec(tideText)) !== null) {
     tides.push({
       type: match[1],
       time: match[2],
-      height: match[5],
-      when: match[4]
+      height: match[6],
+      when: match[5]
     });
   }
   return tides;
