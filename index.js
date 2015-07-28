@@ -1,5 +1,11 @@
-if (process.env.NEW_RELIC_LICENSE_KEY)
+if (process.env.NEW_RELIC_LICENSE_KEY) {
   require('newrelic');
+}
+
+var elasticsearch = require('elasticsearch');
+var ESClient = new elasticsearch.Client({
+    host: process.env.SEARCHBOX_SSL_URL
+});
 
 var express = require('express');
 var cors = require('cors');
@@ -45,6 +51,7 @@ var parseResult = function (response) {
   return response.reduce(function (result, pod) {
     if (pod.$.id === "Result") {
       result.tides = parseTides(pod.subpod[0].plaintext[0]);
+      result.rawData = pod.subpod[0].plaintext[0]
     }
     if (pod.$.id === "TideMeasurementStation") {
       result.station = parseStation(pod.subpod[0].plaintext[0]);
@@ -85,23 +92,49 @@ var parseCities = function (citiesText) {
   return cities;
 };
 
-app.get('/:lat/:lon', cors(corsOptions), function(req, res, next){
-  tideQuery(req.params.lat + ' ' + req.params.lon).then(function(result) {
-    if (result.queryresult.pod.length < 2)
+var indexEs = function (latitude, longitude, tideResult, cities) {
+  var esDoc = {
+    index: 'tide_api_calls',
+    type: 'requestresponse',
+    body: {
+      geoJSON: [longitude, latitude],
+      result: {}
+    }
+  };
+
+  if (tideResult) {
+    esDoc.body.result.station = tideResult.station;
+  }
+
+  if (cities) {
+    esDoc.body.result.cities = cities;
+  }
+
+  ESClient.index(esDoc);
+};
+
+app.get('/:latitude/:longitude', cors(corsOptions), function(req, res, next){
+  var latitude = req.params.latitude;
+  var longitude = req.params.longitude;
+
+  tideQuery(latitude + ' ' + longitude).then(function(tideResult) {
+    if (tideResult.queryresult.pod.length < 2)
       throw new TideStationNotFoundException();
     
-    res.json(parseResult(result.queryresult.pod));
+    var result = parseResult(tideResult.queryresult.pod);
+    indexEs(latitude, longitude, result);
+    res.json(result);
   }).catch(TideStationNotFoundException, function (error) {
     console.log('---- havent found any stations, querying cities');
     var cities = [];
 
     return client.queryAsync({
-      input: req.params.lat + ' ' + req.params.lon,
+      input: latitude + ' ' + longitude,
       units: 'metric',
       format: 'plaintext',
       includepodid: ['CartographicNearestCity', 'CartographicCities']
-    }).then(function (response) {
-      cities = _.flatten(response.queryresult.pod.reduce(function (cities, pod) {
+    }).then(function (citiesResponse) {
+      cities = _.flatten(citiesResponse.queryresult.pod.reduce(function (cities, pod) {
         if (pod.$.id === "CartographicNearestCity") {
           cities.push(parseNearby(pod.subpod[0].plaintext[0]));
         }
@@ -120,10 +153,12 @@ app.get('/:lat/:lon', cors(corsOptions), function(req, res, next){
         if (tideResult.queryresult.pod && tideResult.queryresult.pod.length == 2) {
           var result = parseResult(tideResult.queryresult.pod);
           result.station.distance = cities[i].distance;
+          indexEs(latitude, longitude, result, cities);
           return res.json(result);
         }
       }
 
+      indexEs(latitude, longitude);
       return res.json({tides:[]});
     });
   }).catch(function (err) {

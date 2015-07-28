@@ -9,7 +9,8 @@
     "express": "~4.10.6",
     "lodash": "^3.10.0",
     "newrelic": "^1.21.1",
-    "node-wolfram": "0.0.1"
+    "node-wolfram": "0.0.1",
+    "elasticsearch": "~5.0.0"
   },
   "devDependencies": {},
   "scripts": {
