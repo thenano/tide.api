@@ -113,7 +113,11 @@ var indexEs = function (latitude, longitude, tideResult, cities) {
   ESClient.index(esDoc);
 };
 
-app.get('/:latitude/:longitude', cors(corsOptions), function(req, res, next){
+app.get('/ping', cors(corsOptions), function(req, res, next) {
+  res.status(200).send('pong');
+});
+
+app.get('/:latitude/:longitude', cors(corsOptions), function(req, res, next) {
   var latitude = req.params.latitude;
   var longitude = req.params.longitude;
 
