@@ -12,9 +12,13 @@
     "node-wolfram": "0.0.1",
     "elasticsearch": "~5.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "jasmine": "^2.3.2",
+    "request-tester": "~0.0.3"
+  },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "jasmine"
   },
   "engines": {
     "node": "0.10.x"
