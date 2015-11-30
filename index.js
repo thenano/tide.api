@@ -97,7 +97,7 @@ var indexEs = function (latitude, longitude, tideResult, cities) {
     index: 'tide_api_calls',
     type: 'requestresponse',
     body: {
-      geoJSON: [longitude, latitude],
+      geoJSON: [ parseFloat(longitude.slice(0, -1)), parseFloat(latitude.slice(0, -1))],
       result: {}
     }
   };
