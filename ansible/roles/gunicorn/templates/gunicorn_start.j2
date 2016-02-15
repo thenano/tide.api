@@ -1,0 +1,40 @@
+#!/bin/sh
+
+NAME="{{ application_name }}"
+SOCKFILE={{ virtualenv_path }}/run/gunicorn.sock
+USER={{ gunicorn_user }}
+GROUP={{ gunicorn_group }}
+NUM_WORKERS={{ gunicorn_num_workers }}
+WORKDIR={{ gunicorn_workdir }}
+
+# Set this to 0 for unlimited requests. During development, you might want to
+# set this to 1 to automatically restart the process on each request (i.e. your
+# code will be reloaded on every request).
+MAX_REQUESTS={{ gunicorn_max_requests }}
+
+echo "Starting $NAME as `whoami`"
+
+# Activate the virtual environment.
+. {{ virtualenv_path }}/bin/activate
+
+# Set additional environment variables.
+. {{ virtualenv_path }}/bin/postactivate
+
+# Create the run directory if it doesn't exist.
+RUNDIR=$(dirname $SOCKFILE)
+test -d $RUNDIR || mkdir -p $RUNDIR
+
+# Programs meant to be run under supervisor should not daemonize themselves
+# (do not use --daemon).
+cd $WORKDIR
+exec newrelic-admin run-program gunicorn \
+    --name $NAME \
+    --workers $NUM_WORKERS \
+    --max-requests $MAX_REQUESTS \
+    --timeout {{ gunicorn_timeout_seconds }} \
+    --user $USER --group $GROUP \
+    --log-level {{ gunicorn_log_level }} \
+    --bind unix:$SOCKFILE \
+    --log-syslog-to udp://{{ gunicorn_log_server }}:{{ gunicorn_log_port }} \
+    --log-syslog \
+    {{ gunicorn_wsgi_file }}

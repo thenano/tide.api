@@ -1,0 +1,23 @@
+- name: NEWRELIC | Adding signing key
+  apt_key: url=https://download.newrelic.com/548C16BF.gpg state=present
+
+- name: NEWRELIC | Adding sources.list deb url
+  apt_repository:
+    repo: 'deb http://apt.newrelic.com/debian/ newrelic non-free'
+    state: present
+
+- name: NEWRELIC | Installing
+  apt:
+    pkg: newrelic-sysmond
+    state: latest
+    update_cache: yes
+
+- name: NEWRELIC | Configuring app key
+  command: "nrsysmond-config --set license_key={{ new_relic_license_key }}"
+  args:
+    creates: /etc/newrelic/nrsysmond.cfg
+
+- name: NEWRELIC | Starting
+  service:
+    name: newrelic-sysmond
+    state: started

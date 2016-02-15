@@ -1,0 +1,49 @@
+---
+
+- name: Ensure os dependencias are installed
+  apt: name={{ item }} state=latest
+  with_items:
+    # - libblas-dev
+    # - libopenblas-dev
+    # - liblapack-dev
+    # - libatlas-base-dev
+    - python-numpy
+    - python-scipy
+    - gfortran
+
+- name: create project dir
+  file: path={{ project_path }} state=directory
+
+- name: copy the app
+  copy: src=../app.py dest={{ project_path }}/app.py
+
+- name: copy the requirements
+  copy: src=../requirements.txt dest={{ requirements_file }}
+
+- name: copy the coordinates_coast
+  copy: src=../coordinates.dat dest={{ project_path }}/coordinates.dat
+
+- name: Install packages required by the app inside virtualenv
+  pip: virtualenv={{ virtualenv_path }} requirements={{ requirements_file }}
+  tags: packages
+
+- name: add newrelic config file
+  command: newrelic-admin generate-config {{ new_relic_license_key }} newrelic.ini
+  args:
+    chdir: "{{ project_path }}"
+    creates: "{{ project_path }}/newrelic.ini"
+
+- name: Download and install OTPS2
+  unarchive: src=ftp://ftp.oce.orst.edu/dist/tides/OTPS2.tar.Z dest={{ project_path }}/ copy=no creates="{{ project_path }}/OTPS2/predict_tide.f90"
+
+- name: Download and install data files
+  unarchive: src=ftp://ftp.oce.orst.edu/pub/lana/TPXO8_compact/tpxo8_atlas_compact.tar.Z dest={{ project_path }}/OTPS2 copy=no creates="{{ project_path }}/OTPS2/DATA/hf.tpxo8_atlas_30"
+
+- name: compile the tide program
+  command: make
+  args:
+    chdir: "{{ project_path }}/OTPS2"
+    creates: "{{ project_path }}/OTPS2/predict_tide"
+
+- name: copy tide.is input file
+  copy: src=tide.is.inp dest={{ project_path }}/OTPS2/tide.is.inp

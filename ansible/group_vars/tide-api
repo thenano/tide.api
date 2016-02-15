@@ -1,0 +1,23 @@
+---
+
+# common -----------------------------------------------------------------------
+project_name: tide-api
+application_name: "{{ project_name}}"
+
+# web --------------------------------------------------------------------------
+virtualenv_root: "/webapps"
+virtualenv_path: "{{ virtualenv_root }}/{{ application_name }}"
+project_path: "{{ virtualenv_path }}/{{ project_name }}"
+
+web_user: "{{ application_name }}"
+web_group: webapps
+
+# gunicorn ---------------------------------------------------------------------
+gunicorn_user: "{{ web_user}}"
+gunicorn_group: "{{ web_group }}"
+gunicorn_num_workers: 3
+gunicorn_timeout_seconds: 300
+gunicorn_workdir: "{{ project_path }}"
+gunicorn_wsgi_file: app
+application_log_dir: "{{ virtualenv_path }}/logs"
+application_log_file: "{{ application_log_dir }}/gunicorn_supervisor.log"

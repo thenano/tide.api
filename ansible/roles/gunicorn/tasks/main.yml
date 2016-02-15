@@ -1,0 +1,19 @@
+---
+
+- include: create_users_and_groups.yml
+  tags:
+    - gunicorn
+
+- include: setup_virtualenv.yml
+  tags:
+    - gunicorn
+    - virtualenv
+
+- include: setup_supervisor.yml
+  tags:
+    - gunicorn
+    - supervisor
+
+- include: set_file_permissions.yml
+  tags:
+    - gunicorn

@@ -1,0 +1,20 @@
+---
+
+# common -----------------------------------------------------------------------
+project_name: tide-api
+application_name: "{{ project_name}}"
+
+# web --------------------------------------------------------------------------
+virtualenv_root: "/webapps"
+virtualenv_path: "{{ virtualenv_root }}/{{ application_name }}"
+project_path: "{{ virtualenv_path }}/{{ project_name }}"
+
+web_user: "{{ application_name }}"
+web_group: webapps
+
+requirements_file: "{{ project_path }}/requirements.txt"
+
+# Falcon Environment variables
+falcon_environment:
+  NEW_RELIC_CONFIG_FILE: "{{ project_path }}/newrelic.ini"
+  ALLOWED_ORIGINS: "{{ allowed_origins }}"

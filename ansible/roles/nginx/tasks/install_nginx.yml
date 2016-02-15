@@ -1,0 +1,23 @@
+- name: NGINX | Adding NGINX signing key
+  apt_key: url=http://nginx.org/keys/nginx_signing.key state=present
+
+- name: NGINX | Adding sources.list deb url for NGINX
+  apt_repository:
+    repo: 'deb http://nginx.org/packages/mainline/ubuntu/ {{ ansible_distribution_release }} nginx'
+    state: present
+
+- name: NGINX Plus | Adding sources.list deb-src url for NGINX
+  apt_repository:
+    repo: 'deb-src http://nginx.org/packages/mainline/ubuntu/ {{ ansible_distribution_release }} nginx'
+    state: present
+
+- name: NGINX | Installing NGINX
+  apt:
+    pkg: nginx
+    state: latest
+    update_cache: yes
+
+- name: NGINX | Starting NGINX
+  service:
+    name: nginx
+    state: started

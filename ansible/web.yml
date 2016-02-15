@@ -1,0 +1,12 @@
+---
+- hosts: tide-api
+  become: yes
+  become_method: sudo
+  roles:
+    - newrelic
+    - nginx
+    - role: letsencrypt
+      letsencrypt_webroot_path: /usr/share/nginx/html
+      letsencrypt_email: thenano@gmail.com
+      letsencrypt_cert_domains:
+        - tide-api.com

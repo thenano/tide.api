@@ -1,0 +1,13 @@
+---
+
+- name: Create the virtualenv
+  command: virtualenv {{ virtualenv_path }} --system-site-packages
+           creates={{ virtualenv_path }}/bin/activate
+
+- name: Create the virtualenv postactivate script to set environment variables
+  template: src=virtualenv_postactivate.j2
+            dest={{ virtualenv_path }}/bin/postactivate
+            owner={{ web_user }}
+            group={{ web_group }}
+            mode=0640
+            backup=yes

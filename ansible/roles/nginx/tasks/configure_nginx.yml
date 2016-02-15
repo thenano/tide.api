@@ -1,0 +1,9 @@
+- name: change nginx configuration file
+  copy: src=nginx.conf dest=/etc/nginx/nginx.conf mode=0644
+  notify: 
+  - restart nginx
+
+- name: add default nginx site
+  copy: src=default.conf dest=/etc/nginx/conf.d/default.conf mode=0644
+  notify: 
+  - restart nginx

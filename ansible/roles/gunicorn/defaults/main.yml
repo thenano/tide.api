@@ -1,0 +1,20 @@
+---
+
+application_name: "tide-api"
+virtualenv_root: "/webapps"
+virtualenv_path: "{{ virtualenv_root }}/{{ application_name }}"
+gunicorn_user: "{{ application_name }}"
+gunicorn_group: webapps
+application_log_dir: "{{ virtualenv_path }}/logs"
+application_log_file: "{{ application_log_dir }}/gunicorn_supervisor.log"
+gunicorn_log_server: localhost
+gunicorn_log_port: 12303
+gunicorn_log_level: info
+
+# For the number of workers, a good rule to follow is
+# 2 x number of CPUs + 1
+gunicorn_num_workers: 3
+gunicorn_max_requests: 0
+gunicorn_timeout_seconds: 30
+gunicorn_workdir: /
+gunicorn_wsgi_file: ~

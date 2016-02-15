@@ -1,0 +1,15 @@
+- name: create ssl dir
+  file: path=/etc/nginx/ssl state=directory
+
+- name: create dh_params
+  command: openssl dhparam -out dhparam.pem 4096
+  args:
+    chdir: /etc/nginx/ssl/
+    creates: /etc/nginx/ssl/dhparam.pem
+  notify:
+  - restart nginx
+
+- name: add site configuration file
+  template: src=tide-api.conf.j2 dest=/etc/nginx/conf.d/tide-api.conf mode=0644
+  notify: 
+  - restart nginx

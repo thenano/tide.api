@@ -1,0 +1,16 @@
+---
+
+- name: Create the Supervisor config file
+  template: src=supervisor_config.j2
+            dest=/etc/supervisor/conf.d/{{ application_name }}.conf
+            backup=yes
+  register: applicationconfigfileresult
+
+- name: Add {{ application_name }} to supervisor
+  set_fact: "{{ supervisor_restart_programms}} + [{{ application_name }}]"
+  when: (applicationconfigfileresult is defined and applicationconfigfileresult.changed) or
+        (applicationfilepermresult is defined and applicationfilepermresult.changed)
+  notify:
+    - Supervisor reread
+    - Restart Supervisor programms
+  changed_when: true

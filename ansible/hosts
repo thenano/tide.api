@@ -1,0 +1,2 @@
+[tide-api]
+tide-api.com  ansible_ssh_user=ansible

@@ -1,0 +1,32 @@
+---
+- include: create_swap_file.yml
+  when: create_swap_file
+  tags: swap
+
+- name: Update apt
+  apt: update_cache={{ update_apt_cache }}
+  tags: packages
+
+- name: Ensure bash, OpenSSl, and libssl are the latest versions
+  apt: name={{ item }} state=latest
+  with_items:
+    - bash
+    - openssl
+    - libssl-dev
+
+- name: Install base packages
+  apt: name={{ item }} force=yes state=installed
+  with_items:
+    - build-essential
+    - ntp
+    - python
+    - python-dev
+    - python-pip
+
+- name: Install virtualenv
+  pip: name=virtualenv
+  tags: packages
+
+- name: Make sure ntp is running
+  service: name=ntp state=started enabled=yes
+  tags: service

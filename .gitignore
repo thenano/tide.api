@@ -3,3 +3,5 @@ npm-debug.log
 config.codekit
 min
 newrelic_agent.log
+OTPS2
+*.pyc

@@ -1,0 +1,4 @@
+newrelic
+falcon==0.3.0
+geopy==1.11.0
+gunicorn==19.4.5
