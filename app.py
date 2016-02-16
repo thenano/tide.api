@@ -4,7 +4,7 @@ import re, time, calendar
 from geopy import distance as geopy_distance
 from datetime import datetime, timedelta
 from subprocess import call
-from scipy import signal
+from scipy.interpolate import UnivariateSpline
 
 import falcon
 import json
@@ -22,7 +22,7 @@ class CorsMiddleware(object):
 class CoastFinder:
     def __init__(self):
         print('initializing known_coordinates')
-        self.known_coordinates = np.memmap('coordinates.dat', mode='r+', shape=(3897607, 3), dtype=np.float)
+        self.known_coordinates = np.memmap('coordinates.dat', mode='r+', shape=(3880084, 3), dtype=np.float)
         print('done')
 
     def find_nearest(self, coordinate):
@@ -34,15 +34,26 @@ class CoastFinder:
 
 class TideExtremesCalculator:
     def find_extremes(self, coordinate, time, LAT):
-        start = time = datetime.utcfromtimestamp(time) - timedelta(hours=13)
+        start = time = datetime.utcfromtimestamp(time) - timedelta(hours=7)
         contents = ''
 
         while (time < start + timedelta(hours=26)):
-            time += timedelta(minutes=1)
+            time += timedelta(minutes=30)
             contents += '   {0:.3f}   {1:.3f}   {2:04d}   {3:02d}   {4:02d}   {5:02d}   {6:02d}   0\n'.format(coordinate[0], coordinate[1], time.year, time.month, time.day, time.hour, time.minute)
 
         tides_and_times = self.run_tide_algorithm(contents)
-        return self.find_high_tides(tides_and_times, LAT) + self.find_low_tides(tides_and_times, LAT)
+        tide_curve = UnivariateSpline(tides_and_times['time'], tides_and_times['height'], k=4, s=0)
+
+        extremes = []
+        for time in tide_curve.derivative().roots():
+            height = tide_curve(time)
+            extremes.append({
+                    'time': int(time),
+                    'height': '%.1f' % (height + LAT),
+                    'type': 'low' if height <= 0 else 'high'
+                })
+
+        return extremes
 
     def run_tide_algorithm(self, input_contents):
         lat_lon_time_file = open('OTPS2/tide_is_lat_lon_time', 'w')
@@ -55,33 +66,12 @@ class TideExtremesCalculator:
         tide_data = tide_file.read()
         tide_file.close()
 
-        return np.array(re.findall(r"\s+-?\d+\.\d+\s+-?\d+\.\d+\s+(\d\d\.\d\d\.\d{4}\s\d\d:\d\d:\d\d)\s+(-?\d+\.\d+).*\n", tide_data),
-            dtype=[('time', 'S19'), ('height', np.float)])
-       
-    def find_tide_maxima(self, maxima_range, tides_and_times, type, LAT):
-        extremes = [];
-        current_index = 0
-        for i in np.append(np.where(maxima_range[1:] - maxima_range[:-1] > 1), maxima_range.size):
-            local_maxima_range = maxima_range[current_index:i+1]
-            current_index = i+1
-            if not (local_maxima_range.size == 1 and (local_maxima_range[0] == 0 or local_maxima_range[0] == tides_and_times.size - 1)):
-                index = int(np.average(local_maxima_range))
-                posix_time = calendar.timegm(time.strptime(tides_and_times[index]['time'], '%m.%d.%Y %H:%M:%S'))
-                extremes.append({
-                    'time': posix_time,
-                    'height': '%.1f' % (tides_and_times[index]['height'] + LAT),
-                    'type': type
-                })
+        matched_data = re.findall(r"\s+-?\d+\.\d+\s+-?\d+\.\d+\s+(\d\d\.\d\d\.\d{4}\s\d\d:\d\d:\d\d)\s+(-?\d+\.\d+).*\n", tide_data)
+        parsed_data = []
+        for item in matched_data:
+            parsed_data.append((calendar.timegm(time.strptime(item[0], '%m.%d.%Y %H:%M:%S')), item[1]))
 
-        return extremes
-
-    def find_high_tides(self, tides_and_times, LAT):
-        high_tide_indexes = signal.argrelextrema(tides_and_times['height'], np.greater_equal, order=1440/3)[0]
-        return self.find_tide_maxima(high_tide_indexes, tides_and_times, 'high', LAT)
-
-    def find_low_tides(self, tides_and_times, LAT):
-        high_tide_indexes = signal.argrelextrema(tides_and_times['height'], np.less_equal, order=1440/3)[0]
-        return self.find_tide_maxima(high_tide_indexes, tides_and_times, 'low', LAT)
+        return np.array(parsed_data, dtype=[('time', np.int), ('height', np.float)])
 
     def find_LAT(self, coordinate):
         start = time = datetime(datetime.today().year, 1, 1, 0, 0)
